@@ -1,59 +1,78 @@
-import { useState, useEffect } from "react";
-import Cadastro from "./Cadastro";
+import { useState } from "react";
 import { useUser } from "../contexts/userContext/userContext";
+import Cadastro from "./Cadastro";
+import { useChat } from "../contexts/chatContext/chathook";
 
 const Componente = () => {
-  const { cadastro, showSucesso } = useUser();
+  const { cadastro } = useUser();
+  const { chat, addMessage } = useChat();
   const [inputUser, setInputUser] = useState("");
   const [inputBot, setInputBot] = useState("");
-  const [showCadastro, setShowCadastro] = useState(true);
 
-  useEffect(() => {
-    if (showSucesso) {
-      setShowCadastro(false);
+  const handleEnter = (e) => {
+    if (e.code.toLowerCase() === "enter") {
+      if (inputUser.trim() !== "") {
+        addMessage(cadastro, inputUser.trim());
+        setInputUser("");
+      } else if (inputBot.trim() !== "") {
+        addMessage("bot", inputBot.trim());
+        setInputBot("");
+      }
     }
-  }, [showSucesso]);
+  };
+
+  if (!cadastro) return <Cadastro />;
 
   return (
     <section className="h-full w-full p-2 text-white justify-center items-center flex">
       <div>
         <h1 className="text-3xl text-center mb-3">Chat Bot</h1>
         <div className="border-2 border-zinc-800 h-96 w-96 grid grid-rows-[3fr_1fr]">
-          <div className="p-2 flex flex-col gap-2 overflow-y-auto">
-            <div className="flex justify-start">
-              <p className="flex flex-col border px-2 py-1 rounded-lg bg-zinc-900">
-                <span className="text-start">{cadastro}</span>
-                <span>fsdsfgfgsfgsfsdf</span>
-              </p>
-            </div>
-            <div className="flex justify-end">
-              <p className="flex flex-col border px-2 py-1 rounded-lg">
-                <span className="text-end">Bot</span>
-                <span>fsdsfgfgsfgsfsdf</span>
-              </p>
-            </div>
+          <div className="p-2 flex flex-col gap-2 overflow-y-auto ">
+            {chat.map((item) => (
+              <div
+                key={item.id}
+                className={`flex ${
+                  item.user === "bot" ? "justify-end" : "justify-start"
+                }`}>
+                <p
+                  className={`flex flex-col border px-2 py-1 rounded-lg ${
+                    item.user === "bot" ? "bg-zinc-800 " : "bg-zinc-900"
+                  }`}>
+                  <span
+                    className={`flex ${
+                      item.user === "bot" ? "justify-end" : "justify-start"
+                    }`}>
+                    {item.user}
+                  </span>
+                  <p>{item.message}</p>
+                </p>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col justify-end">
             <input
+              name={cadastro}
               placeholder={`${cadastro}, digite uma mensagem [Enter para enviar]`}
               type="text"
               className="border-t p-2 bg-transparent border-zinc-800 outline-none"
               value={inputUser}
               onChange={(e) => setInputUser(e.target.value)}
+              onKeyUp={handleEnter}
             />
             <input
+              name={"bot"}
               placeholder="Bot, digite uma mensagem [Enter para enviar]"
               type="text"
               className="border-t p-2 bg-transparent border-zinc-800 outline-none"
               value={inputBot}
               onChange={(e) => setInputBot(e.target.value)}
+              onKeyUp={handleEnter}
             />
           </div>
         </div>
       </div>
-
-      {showCadastro && <Cadastro />}
     </section>
   );
 };
